@@ -1,5 +1,5 @@
 import os
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 
 
 def extract_audio(video_path: str, output_audio_path: str) -> None:

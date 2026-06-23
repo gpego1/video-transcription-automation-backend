@@ -27,8 +27,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     created_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
 
 
 class RegisterRequest(BaseModel):
@@ -71,8 +70,12 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("sub")
-        if user_id is None:
+        sub: str = payload.get("sub")
+        if sub is None:
+            raise credentials_exception
+        try:
+            user_id = int(sub)
+        except (ValueError, TypeError):
             raise credentials_exception
     except JWTError:
         raise credentials_exception
@@ -97,7 +100,7 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    access_token = create_access_token({"sub": user.id})
+    access_token = create_access_token({"sub": str(user.id)})
     return TokenResponse(access_token=access_token, user=user)
 
 
@@ -107,7 +110,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     if not user or not verify_password(request.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Invalid email or password")
 
-    access_token = create_access_token({"sub": user.id})
+    access_token = create_access_token({"sub": str(user.id)})
     return TokenResponse(access_token=access_token, user=user)
 
 

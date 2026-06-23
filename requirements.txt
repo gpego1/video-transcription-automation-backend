@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+sqlalchemy
+passlib[bcrypt]
+python-jose[cryptography]
+pydantic
+moviepy
+openai-whisper
+python-multipart

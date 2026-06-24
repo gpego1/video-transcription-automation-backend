@@ -1,3 +1,4 @@
+import gc
 import os
 import tempfile
 from pathlib import Path
@@ -25,7 +26,7 @@ async def get_features():
 @router.post("/upload")
 async def upload_transcription(
     file: UploadFile = File(...),
-    model: str = Form("base"),
+    model: str = Form("tiny"),
     language: str = Form(None),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
@@ -47,6 +48,7 @@ async def upload_transcription(
         result = transcribe_audio_segments(str(audio_path), model_name=model, language=lang)
 
         segments = diarize_segments(str(audio_path), result["segments"])
+        gc.collect()
         full_text = _format_text(segments)
 
         record = Transcription(
